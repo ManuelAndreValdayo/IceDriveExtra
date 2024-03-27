@@ -16,3 +16,12 @@ class Discovery(IceDrive.Discovery):
 
     def announceBlobService(self, prx: IceDrive.BlobServicePrx, current: Ice.Current = None) -> None:
         """Receive an Blob service announcement."""
+
+    def getAuthenticationServices(self, current: Ice.Current = None) -> list[IceDrive.AuthenticationPrx]:
+        """Return a list of the discovered Authentication*"""
+
+    def getDiscoveryServices(self, current: Ice.Current = None) -> list[IceDrive.DirectoryServicePrx]:
+        """Return a list of the discovered DirectoryService*"""
+
+    def getBlobServices(self, current: Ice.Current = None) -> list[IceDrive.BlobServicePrx]:
+        """Return a list of the discovered BlobService*"""

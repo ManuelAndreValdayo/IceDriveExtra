@@ -10,6 +10,9 @@ class BlobQueryResponse(IceDrive.BlobQueryResponse):
     def downloadBlob(self, blob: IceDrive.DataTransferPrx, current: Ice.Current = None) -> None:
         """Receive a `DataTransfer` when other service instance knows the `blob_id`."""
 
+    def blobExists(self, current: Ice.Current = None) -> None:
+        """Indicate that `blob_id` was recognised by other service instance and it's stored there."""
+
     def blobLinked(self, current: Ice.Current = None) -> None:
         """Indicate that `blob_id` was recognised by other service instance and was linked."""
 
@@ -20,6 +23,9 @@ class BlobQuery(IceDrive.BlobQuery):
     """Query receiver."""
     def downloadBlob(self, blob_id: str, response: IceDrive.BlobQueryResponsePrx, current: Ice.Current = None) -> None:
         """Receive a query for downloading an archive based on `blob_id`."""
+
+    def doesBlobExist(self, blob_id: str, response: IceDrive.BlobQueryResponsePrx, current: Ice.Current = None) -> None:
+        """Receive a query to check if a given `blob_id` is stored in the instance."""
 
     def linkBlob(self, blob_id: str, response: IceDrive.BlobQueryResponsePrx, current: Ice.Current = None) -> None:
         """Receive a query to create a link for `blob_id` archive if it exists."""
