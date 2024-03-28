@@ -110,7 +110,7 @@
   };
 
   interface DirectoryServiceQuery{
-    void rootDirectory(User* user, DirectoryQueryResponse* response);
+    void rootDirectory(User* user, DirectoryServiceQueryResponse* response);
   };
 
   // *** Services discovery *** //
