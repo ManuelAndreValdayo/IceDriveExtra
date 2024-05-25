@@ -23,7 +23,7 @@ echo "Launching IceStorm..."
 start_icestorm
 
 echo "Waiting for IceStorm to become available..."
-wait_icestorm
+# wait_icestorm
 
 echo "Creting topics..."
 create_topics "Discovery" "AuthenticationQuery" "DirectoryQuery" "BlobQuery"
