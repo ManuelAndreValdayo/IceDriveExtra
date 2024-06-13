@@ -62,13 +62,21 @@ class BlobApp(Ice.Application):
         except IceStorm.NoSuchTopic:
             DiscoveryBlob_topic = discovery_proxy.create("Discovery")
         DiscoveryBlob_topic.subscribeAndGetPublisher(qos, ms_Discovery)
+        print("Waiting events... '{}'".format(ms_Discovery))
+        
+        query_publisher_proxy = IceDrive.BlobQueryPrx.uncheckedCast(DiscoveryBlob_topic)
+        print(query_publisher_proxy)
         DiscoveryBlob_publisher = DiscoveryBlob_topic.getPublisher()
         DiscoveryBlol_prx = IceDrive.DiscoveryPrx.uncheckedCast(DiscoveryBlob_publisher)
         proxyBlob = IceDrive.BlobServicePrx.uncheckedCast(servant_proxy)
+        adapter.activate()
         DiscoveryBlol_prx.announceBlobService(proxyBlob)
-        print("BlobService published")
-        print(proxyBlob)
-
+        ListaBlob = DiscoveryBlol_prx.getBlobServices()
+        print(ListaBlob)
+        proxy_str = str(servant_proxy)
+        with open("proxy.txt", "w") as f:
+            f.write(proxy_str)
+            
         self.shutdownOnInterrupt()
         self.communicator().waitForShutdown()
 

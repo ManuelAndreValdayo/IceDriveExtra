@@ -17,7 +17,7 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
-
+        
     def link(self, blob_id: str, current: Ice.Current = None) -> None:
         """Mark a blob_id file as linked in some directory."""
 
