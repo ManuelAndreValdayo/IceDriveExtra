@@ -71,8 +71,8 @@ class BlobApp(Ice.Application):
         proxyBlob = IceDrive.BlobServicePrx.uncheckedCast(servant_proxy)
         adapter.activate()
         DiscoveryBlol_prx.announceBlobService(proxyBlob)
-        ListaBlob = DiscoveryBlol_prx.getBlobServices()
-        print(ListaBlob)
+        #ListaBlob = DiscoveryBlol_prx.getBlobServices()
+        #print(ListaBlob)
         proxy_str = str(servant_proxy)
         with open("proxy.txt", "w") as f:
             f.write(proxy_str)
