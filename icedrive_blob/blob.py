@@ -3,6 +3,7 @@
 import Ice
 
 import IceDrive
+import json
 
 
 class DataTransfer(IceDrive.DataTransfer):
@@ -17,7 +18,14 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
+    def __init__(self, persistencia, ruta_persistencia):
+        self.persistencia = persistencia
+        self.ruta_persistencia = f"{ruta_persistencia}.json"
         
+    def guardarPersistencia(self):
+        with open(self.ruta_persistencia, 'w') as archivo:
+            json.dump(self.persistencia, archivo, indent=4)
+            
     def link(self, blob_id: str, current: Ice.Current = None) -> None:
         """Mark a blob_id file as linked in some directory."""
 

@@ -8,10 +8,10 @@ from typing import List
 
 class Discovery(IceDrive.Discovery):
     """Servants class for service discovery."""
-    def __init__(self):
-        self.authentication_services = {}
-        self.directory_services = {}
-        self.blob_services = {}
+    def __init__(self,authentication_services,directory_services,blob_services):
+        self.authentication_services = authentication_services
+        self.directory_services = directory_services
+        self.blob_services = blob_services
 
     def announceAuthentication(self, prx: IceDrive.AuthenticationPrx, current: Ice.Current = None) -> None:
         """Receive an Authentication service announcement."""
@@ -27,6 +27,7 @@ class Discovery(IceDrive.Discovery):
         """Receive an Blob service announcement."""
         print("servicio blob anunciado")
         self.blob_services[prx.ice_getIdentity()] = prx
+        print(f"estos son los blobs: {len(self.blob_services)}")
 
     def getAuthenticationServices(self, current: Ice.Current = None) -> list[IceDrive.AuthenticationPrx]:
         """Return a List of the discovered Authentication*"""
