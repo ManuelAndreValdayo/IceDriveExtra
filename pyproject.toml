@@ -30,3 +30,6 @@ linters = ["black", "ruff", "pydocstyle"]
 
 [project.scripts]
 icedrive-blob = "icedrive_blob.app:main"
+
+icedrive-blob = "icedrive_blob.cliente:main"
+

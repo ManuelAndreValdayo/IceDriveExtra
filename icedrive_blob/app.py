@@ -180,7 +180,9 @@ class BlobApp(Ice.Application):
         self.blob_service_proxy = blob_service_proxy
 
         logging.info("Proxy del servicio Blob: %s", blob_service_proxy)
-
+        
+        with open("proxy.txt", "w") as f:
+            f.write(str(blob_service_proxy))
         # Crear un servidor Discovery y añadirlo al adaptador
         discovery_service = Discovery(authentication_services,directory_services,blob_services)
         discovery_service_proxy = adapter.addWithUUID(discovery_service)
@@ -224,7 +226,7 @@ class BlobApp(Ice.Application):
                 
         while True:
             print("Ejecutando...")
-            time.sleep(1)    
+            time.sleep(8)    
             
         #return 0
 
