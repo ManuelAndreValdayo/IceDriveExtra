@@ -7,9 +7,11 @@ import json
 import tempfile
 import hashlib
 import base64
-from .delayed_response import BlobQuery
+from .delayed_response import BlobQuery, BlobQueryResponse
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
-
+import time
+import pdb
+import threading
 
 
 class DataTransfer(IceDrive.DataTransfer):
@@ -32,10 +34,33 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
-    def __init__(self, persistencia, ruta_persistencia):
+    def __init__(self, persistencia, ruta_persistencia, blob_query: IceDrive.BlobQueryPrx, adapter):
         self.persistencia = persistencia
         self.ruta_persistencia = f"{ruta_persistencia}.json"
+        self.blob_query_publisher = blob_query
+        self.adapter = adapter
+        self.expected_responses = {}
         
+    def remove_object_if_exists(self, adapter: Ice.ObjectAdapter, identity: Ice.Identity) -> None:
+        """Remove an object from the adapter if exists."""
+        if adapter.find(identity) is not None:
+            adapter.remove(identity)
+            self.expected_responses[identity].set_exception(IceDrive.TemporaryUnavailable())
+
+        del self.expected_responses[identity]
+              
+    def crear_blobQueryResponse(self, adapter,  current: Ice.Current = None) -> IceDrive.BlobQueryResponsePrx:
+        future = Ice.Future()
+        response = BlobQueryResponse(future)
+        prx = adapter.addWithUUID(response)
+        query_response_prx = IceDrive.BlobQueryResponsePrx.uncheckedCast(prx)
+        
+        identity = query_response_prx.ice_getIdentity()
+        self.expected_responses[identity] = future
+        threading.Timer(5.0, self.remove_object_if_exists, (adapter, identity)).start()
+
+        return query_response_prx
+    
     def procesar_blob(self, blob):
         # Crear un archivo temporal que se elimine automáticamente al cerrar
         with tempfile.NamedTemporaryFile(mode='wb', delete=False) as temp_file:
@@ -88,11 +113,25 @@ class BlobService(IceDrive.BlobService):
         #if authentication_service.verifyUser(user) == True:
         if True:
             file_blob = self.procesar_blob(blob)
-            if file_blob[1] in self.persistencia:
-                return file_blob[1]
-            else:
+            #if file_blob[1] in self.persistencia:
+            #    return file_blob[1]
+            #else:
+            BlobQueryResponse_proxy = self.crear_blobQueryResponse(self.adapter)
+            inicio = time.time()
+            self.blob_query_publisher.doesBlobExist(file_blob[1],BlobQueryResponse_proxy)
+            seguir = True
+            BlobQueryResponse_service = IceDrive.BlobQueryResponsePrx.checkedCast(BlobQueryResponse_proxy)
+            
+            while seguir:
+                if (time.time() - inicio >= 5) :
+                    seguir = False
+            if(self.expected_responses[BlobQueryResponse_proxy.ice_getIdentity()] != 1):
                 self.persistencia[file_blob[1]] = [file_blob[0],1]
-                self.guardarPersistencia()    
+                self.guardarPersistencia()                      
+            else:
+                return file_blob[1]
+                    
+  
     def download(
         self, user: IceDrive.UserPrx, blob_id: str, current: Ice.Current = None
     ) -> IceDrive.DataTransferPrx:
