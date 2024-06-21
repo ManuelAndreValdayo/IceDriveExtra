@@ -209,7 +209,7 @@ class BlobApp(Ice.Application):
         BlobQuery_publisher = BlobQuery_topic.getPublisher()
 
         blob_query_publisher_proxy = IceDrive.BlobQueryPrx.uncheckedCast(BlobQuery_publisher)
-        blob_service = BlobService(persistencia,ruta_persistencia,blob_query_publisher_proxy,adapter)
+        blob_service = BlobService(persistencia,ruta_persistencia,blob_query_publisher_proxy,adapter,authentication_services)
         blob_service_proxy = adapter.addWithUUID(blob_service)
         self.blob_service_proxy = blob_service_proxy
 

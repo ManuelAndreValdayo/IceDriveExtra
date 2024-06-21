@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 import time
 import pdb
 import threading
-
+import random
 
 class DataTransfer(IceDrive.DataTransfer):
     """Implementation of an IceDrive.DataTransfer interface."""
@@ -33,12 +33,13 @@ class DataTransfer(IceDrive.DataTransfer):
 
 class BlobService(IceDrive.BlobService):
     """Implementation of an IceDrive.BlobService interface."""
-    def __init__(self, persistencia, ruta_persistencia, blob_query: IceDrive.BlobQueryPrx, adapter):
+    def __init__(self, persistencia, ruta_persistencia, blob_query: IceDrive.BlobQueryPrx, adapter,authentication_services):
         self.persistencia = persistencia
         self.ruta_persistencia = f"{ruta_persistencia}.json"
         self.blob_query_publisher = blob_query
         self.adapter = adapter
         self.expected_responses = {}
+        self.authentication_services = authentication_services
 
     def remove_object_if_exists(self, adapter: Ice.ObjectAdapter, identity: Ice.Identity) -> None:
         """Remove an object from the adapter if exists."""
@@ -151,11 +152,11 @@ class BlobService(IceDrive.BlobService):
     ) -> str:
         """Register a DataTransfer object to upload a file to the service."""
 
+        clave_aleatoria = random.choice(list(self.authentication_services.keys()))
+        authentication_proxy = self.authentication_services[clave_aleatoria]
 
-        # authentication_proxy = self.services.getAuthenticationService()
-        # authentication_service = IceDrive.AuthenticationPrx.checkedCast(authentication_proxy)
-        # if authentication_service.verifyUser(user) == True:
-        if True:
+        authentication_service = IceDrive.AuthenticationPrx.checkedCast(authentication_proxy)
+        if authentication_service.verifyUser(user) == True:
             file_blob = self.procesar_blob(blob)
             if file_blob[1] in self.persistencia:
                 return file_blob[1]
@@ -188,46 +189,48 @@ class BlobService(IceDrive.BlobService):
         self, user: IceDrive.UserPrx, blob_id: str, current: Ice.Current = None
     ) -> IceDrive.DataTransferPrx:
         """Return a DataTransfer objet to enable the client to download the given blob_id."""
-        #authentication_proxy = self.services.getAuthenticationService()
-        #authentication_service = IceDrive.AuthenticationPrx.checkedCast(authentication_proxy)
-        #if authentication_service.verifyUser(user) == True:
-        if blob_id in self.persistencia:
-            contenido_base64 = self.persistencia[blob_id][0]
-            contenido_bytes = base64.b64decode(contenido_base64)
+        clave_aleatoria = random.choice(list(self.authentication_services.keys()))
+        authentication_proxy = self.authentication_services[clave_aleatoria]
 
-            # Crear un archivo temporal para almacenar el contenido decodificado
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                temp_file.write(contenido_bytes)
-                temp_file_path = temp_file.name
+        authentication_service = IceDrive.AuthenticationPrx.checkedCast(authentication_proxy)
+        if authentication_service.verifyUser(user) == True:
+            if blob_id in self.persistencia:
+                contenido_base64 = self.persistencia[blob_id][0]
+                contenido_bytes = base64.b64decode(contenido_base64)
 
-            # Crear una instancia de DataTransfer con la ruta del archivo temporal
-            data_transfer = DataTransfer(temp_file_path)
+                # Crear un archivo temporal para almacenar el contenido decodificado
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    temp_file.write(contenido_bytes)
+                    temp_file_path = temp_file.name
 
-            # Adaptador de objeto para devolver el proxy del DataTransfer
-            communicator = current.adapter.getCommunicator()
-            adapter = communicator.createObjectAdapterWithEndpoints("DataTransferAdapter", "tcp -h localhost -p 0")
-            data_transfer_proxy = adapter.addWithUUID(data_transfer)
-            adapter.activate()
+                # Crear una instancia de DataTransfer con la ruta del archivo temporal
+                data_transfer = DataTransfer(temp_file_path)
 
-            return IceDrive.DataTransferPrx.uncheckedCast(data_transfer_proxy)
-        else:
-            # Consultar otras instancias utilizando BlobQuery
-                future = Ice.Future()
-                inicio = time.time()
-                result_container = [future]
-                BlobQueryResponse_proxy = self.crear_blobQueryResponse(self.adapter, future)
-                self.blob_query_publisher.downloadBlob(blob_id,BlobQueryResponse_proxy)
-                consulta_hilo = threading.Thread(target=self.ControlarFuture, args=(future, result_container))
-                consulta_hilo.start()
-                seguir = True
-                while seguir:
-                    if (time.time() - inicio >= 5) :
-                        seguir = False
-                
+                # Adaptador de objeto para devolver el proxy del DataTransfer
+                communicator = current.adapter.getCommunicator()
+                adapter = communicator.createObjectAdapterWithEndpoints("DataTransferAdapter", "tcp -h localhost -p 0")
+                data_transfer_proxy = adapter.addWithUUID(data_transfer)
+                adapter.activate()
 
-                future_result = result_container[0]
-                data_transfer_proxy = future_result.result()
-                if future_result.done():
-                    return data_transfer_proxy
-                else:
-                    raise IceDrive.UnknownBlob("Error al descargar el blob, no existe en la persistencia de ningún microservicio " + blob_id) 
+                return IceDrive.DataTransferPrx.uncheckedCast(data_transfer_proxy)
+            else:
+                # Consultar otras instancias utilizando BlobQuery
+                    future = Ice.Future()
+                    inicio = time.time()
+                    result_container = [future]
+                    BlobQueryResponse_proxy = self.crear_blobQueryResponse(self.adapter, future)
+                    self.blob_query_publisher.downloadBlob(blob_id,BlobQueryResponse_proxy)
+                    consulta_hilo = threading.Thread(target=self.ControlarFuture, args=(future, result_container))
+                    consulta_hilo.start()
+                    seguir = True
+                    while seguir:
+                        if (time.time() - inicio >= 5) :
+                            seguir = False
+                    
+
+                    future_result = result_container[0]
+                    data_transfer_proxy = future_result.result()
+                    if future_result.done():
+                        return data_transfer_proxy
+                    else:
+                        raise IceDrive.UnknownBlob("Error al descargar el blob, no existe en la persistencia de ningún microservicio " + blob_id) 
