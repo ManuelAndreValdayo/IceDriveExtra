@@ -82,10 +82,11 @@ class TestApp(Ice.Application):
             base = communicator.stringToProxy(proxy_str)
             blob_service = IceDrive.BlobServicePrx.checkedCast(base)
             aux_service = IceDrive.UserPrx.checkedCast(base)
-            self.test_upload(adapter,blob_service, aux_service)
-            #blob_id = '56293a80e0394d252e995f2debccea8223e4b5b2b150bee212729b3b39ac4d46'
+            #self.test_upload(adapter,blob_service, aux_service)
+            blob_id = '56293a80e0394d252e995f2debccea8223e4b5b2b150bee212729b3b39ac4d46'
             #self.test_download(blob_service,aux_service, blob_id)
-            #self.unlink_blob(blob_id,blob_service)
+            self.unlink_blob(blob_id,blob_service)
+            
             #blob_service.upload(aux_service,dt_proxy)
 
 

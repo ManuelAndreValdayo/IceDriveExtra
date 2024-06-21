@@ -216,10 +216,10 @@ class BlobApp(Ice.Application):
 
 
 
-        BlobQuery_service = BlobQuery(blob_service,discovery_proxy)
+        BlobQuery_service = BlobQuery(blob_service)
         BlobQuery_service_proxy = adapter.addWithUUID(BlobQuery_service)
 
-        discovery_topic.subscribeAndGetPublisher(qos, BlobQuery_service_proxy)
+        BlobQuery_topic.subscribeAndGetPublisher(qos, BlobQuery_service_proxy)
         print(f"Esperando eventos... '{BlobQuery_service_proxy}'")
 
         logging.info("Proxy del servicio Blob: %s", blob_service_proxy)
