@@ -6,6 +6,7 @@ function start_icestorm {
 }
 
 function wait_icestorm {
+    #while ! netstat -an | grep 'LISTENING' | grep '10000' > /dev/null; do
     while ! ss -ltnp 2> /dev/null | grep ":10000" > /dev/null; do
         sleep 1
         echo "Waiting..."
@@ -23,7 +24,7 @@ echo "Launching IceStorm..."
 start_icestorm
 
 echo "Waiting for IceStorm to become available..."
-# wait_icestorm
+wait_icestorm
 
 echo "Creting topics..."
 create_topics "Discovery" "AuthenticationQuery" "DirectoryQuery" "BlobQuery"
