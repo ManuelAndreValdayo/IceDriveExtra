@@ -222,13 +222,7 @@ class BlobApp(Ice.Application):
         #communicator.waitForShutdown()
         
 
-        signal.signal(signal.SIGTERM, lambda signum, frame: self.handler(signum, frame, blob_service, ruta_persistencia))
-                
-        while True:
-            print("Ejecutando...")
-            time.sleep(8)    
-            
-        #return 0
+        return 0
 
 
 def main():
